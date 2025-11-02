@@ -1,3 +1,5 @@
 flask
 requests
 redis
+pytest
+pytest-mock
