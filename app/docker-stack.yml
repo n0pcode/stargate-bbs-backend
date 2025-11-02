@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  # The API service
+  api:
+    build: ./api
+    image: http-api:latest
+    ports:
+      - "5000:5000"       
+    environment:
+      - FLASK_APP=api.py
+      - FLASK_RUN_HOST=0.0.0.0
+    command: ["flask", "run", "--port=5000"]
+    networks:
+      - app-net
+    depends_on:
+      - redis
+
+  # The Worker service
+  worker:
+    build: ./worker
+    image: http-worker:latest
+    environment:
+      - FLASK_APP=worker.py
+      - FLASK_RUN_HOST=0.0.0.0
+    command: ["flask", "run", "--port=5000"]
+    networks:
+      - app-net
+    depends_on:
+      - redis
+    deploy:
+      replicas: 1
+
+  # Redis service
+  redis:
+    image: "redis:alpine"
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: overlay
