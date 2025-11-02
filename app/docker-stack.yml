@@ -23,6 +23,7 @@ services:
     environment:
       - FLASK_APP=worker.py
       - FLASK_RUN_HOST=0.0.0.0
+      - PYTHONUNBUFFERED=1 
     command: ["flask", "run", "--port=5000"]
     networks:
       - app-net
