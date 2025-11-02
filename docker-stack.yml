@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  # The API service (Flask)
+  api:
+    build: ./app
+    image: crud-app:latest  # We build and tag the image once
+    ports:
+      - "5000:5000"       # Expose API on host port 5000
+    environment:
+      - FLASK_APP=api.py
+    # Command to run the Flask API
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+    networks:
+      - app-net
+    depends_on:
+      - redis
+
+  # The Worker service (Celery)
+  worker:
+    build: ./app            # This will use the cached build from 'api'
+    image: crud-app:latest  # Use the exact same image
+    # Command to run the Celery worker, listening to the 'tasks' app
+    command: ["celery", "-A", "tasks.celery_app", "worker", "--loglevel=info"]
+    networks:
+      - app-net
+    depends_on:
+      - redis
+    deploy:
+      replicas: 1           # We'll start with one worker
+
+  # The Redis service (Broker + Database)
+  redis:
+    image: "redis:alpine"
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: overlay         # Swarm-capable overlay network
